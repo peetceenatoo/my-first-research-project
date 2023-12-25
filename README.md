@@ -1,16 +1,16 @@
 # RecSys-Evaluation
 
-Setup per usare la repo:
+Setup per usare la repo:<br>
 
--Env conda python3.7 IMPORTANTE
-    * Installa Miniconda https://docs.conda.io/projects/miniconda/en/latest/
-    * conda create -n RecSys-Evaluation python=3.7 anaconda
-    * conda activate RecSys-Evaluation
-    * pip install numpy
-    * pip install pandas
-    * pip install "tensorflow>=1.15,<2.0"
-    * pip install openrec
-    * pip install -U scikit-learn
+-Env conda python3.7 IMPORTANTE<br>
+    * Installa Miniconda https://docs.conda.io/projects/miniconda/en/latest/ <br>
+    * conda create -n RecSys-Evaluation python=3.7 anaconda<br>
+    * conda activate RecSys-Evaluation <br>
+    * pip install numpy <br>
+    * pip install pandas <br>
+    * pip install "tensorflow>=1.15,<2.0" <br>
+    * pip install openrec <br>
+    * pip install -U scikit-learn <br>
 
 -Quando lanci il nb usa l'env RecSys-Evaluation
 
