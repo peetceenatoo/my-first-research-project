@@ -11,6 +11,7 @@ Setup per usare la repo:<br>
     * pip install "tensorflow>=1.15,<2.0" <br>
     * pip install openrec <br>
     * pip install -U scikit-learn <br>
+    * pip install protobuf==3.20 <br>
 
 -Quando lanci il nb usa l'env RecSys-Evaluation
 
