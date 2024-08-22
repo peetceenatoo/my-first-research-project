@@ -1,22 +1,13 @@
+# Import libraries
 import numpy as np
-from openrec.tf1.legacy import ImplicitModelTrainer
-from openrec.tf1.legacy.utils.evaluators import ImplicitEvalManager
-from openrec.tf1.legacy.utils import ImplicitDataset
-from openrec.tf1.legacy.recommenders import CML, BPR, PMF
-from openrec.tf1.legacy.utils.evaluators import AUC
-from openrec.tf1.legacy.utils.samplers import PairwiseSampler
 from tqdm.notebook import tqdm
 import numpy as np
 import math
-import pandas as pd
-import os
 import pickle
 
+# Function to pre-calculate the propensity scores
 def calculate_propensities(n_users, n_items, trainfilename, gammas=[1.5, 2, 2.5, 3], normalize=True):
 
-    propensities = dict()
-    Ni = dict()
-    
     # Compute frequencies of items in the training set
     trainset = np.load(trainfilename)
     for i in trainset['item_id']:
@@ -26,20 +17,27 @@ def calculate_propensities(n_users, n_items, trainfilename, gammas=[1.5, 2, 2.5,
             Ni[i] = 1
     del trainset
 
+    # Init dictionaries
+    propensities = dict()
+    Ni = dict()
+
+    # Initialize propensities dictionary
     for gamma in gammas:
         propensities[gamma] = np.zeros((n_users,n_items))
 
-  
+    # Compute propensities according to the formula
     for theitem in range(n_items):
         if theitem not in Ni:
             continue
         for gamma in gammas:
             propensities[gamma][:,theitem] =  np.power(Ni[theitem], (gamma + 1) / 2.0)
 
+    # Normalize propensities if required
     if normalize:
         for gamma in gammas:
             propensities[gamma] /= propensities[gamma].max()
 
+    # Return
     return propensities
 
 def eq(infilename, infilename_neg, trainfilename, propensities, K=1):
@@ -242,7 +240,6 @@ def stratified(infilename, infilename_neg, trainfilename, propensities, K=30, pa
             Ni[i] += 1
         else:
             Ni[i] = 1
-    #del trainset
 
     # Compute recommendations for each user
     for theuser in P["users"]:
@@ -279,23 +276,26 @@ def stratified(infilename, infilename_neg, trainfilename, propensities, K=30, pa
     linspace = np.linspace(pui[items_sorted_by_value[0]], pui[items_sorted_by_value[-1]], partition+1)
    
     # Compute dictionary w, that is, for each item, assigns the average of the puis in the partition it belongs to
-    i=0
+    i = 0
     j = 0
     while i < len(items_sorted_by_value):
-                            
+        # Init average, start and end
         avg = 0
         start = i
         end = i
     
+        # Compute average pui for the subset
         while i < len(items_sorted_by_value) and pui[items_sorted_by_value[i]] >= linspace[j+1]:
             avg += 1.0 / pui[items_sorted_by_value[i]]
             end = i
             i += 1
         avg = avg / (end - start + 1)
 
+        # Assign the average to the items in the subset
         for k in range(start, end+1):
             w[items_sorted_by_value[k]] = avg
 
+        # Move to the next subset of the partition
         j += 1
 
     # Compute bias' numerator
@@ -321,6 +321,9 @@ def stratified(infilename, infilename_neg, trainfilename, propensities, K=30, pa
         concentrations[user] = math.sqrt(concentrations[user] * 2 * math.log(2/delta)) + max_w * 7 * math.log(2/delta)
     # Now sum all the concentrations
     concentration = sum(concentrations.values())
+
+    # Delete trainset
+    del trainset
 
     # Calculate per-user scores
     nonzero_user_count = 0
@@ -388,7 +391,6 @@ def stratified_logspace(infilename, infilename_neg, trainfilename, propensities,
             Ni[i] += 1
         else:
             Ni[i] = 1
-    #del trainset
 
     # Compute recommendations for each user
     for theuser in P["users"]:
@@ -425,50 +427,55 @@ def stratified_logspace(infilename, infilename_neg, trainfilename, propensities,
     logspace = np.logspace(pui[items_sorted_by_value[0]], pui[items_sorted_by_value[-1]], partition+1)
    
     # Compute dictionary w, that is, for each item, assigns the average of the puis in the partition it belongs to
-    i=0
+    i = 0
     j = 0
     while i < len(items_sorted_by_value):
-                            
+
+        # Init average, start and end    
         avg = 0
         start = i
         end = i
     
+        # Compute average pui for the subset
         while i < len(items_sorted_by_value) and pui[items_sorted_by_value[i]] >= logspace[j+1]:
             avg += 1.0 / pui[items_sorted_by_value[i]]
             end = i
             i += 1
-        
-        # Is the average the only good choice? even with the log space split?
         avg = avg / (end - start + 1)
 
+        # Assign the average to the items in the subset
         for k in range(start, end+1):
             w[items_sorted_by_value[k]] = avg
 
+        # Move to the next subset of the partition
         j += 1
 
-        # Compute bias' numerator
-        bias = 0.0
-        for k in items_sorted_by_value:
-            # add |pui*w - 1!|
-            bias += abs(pui[k] * w[k] - 1)
-        # Multiply by number of users
-        bias *= len(P["users"])
+    # Compute bias' numerator
+    bias = 0.0
+    for k in items_sorted_by_value:
+        # add |pui*w - 1!|
+        bias += abs(pui[k] * w[k] - 1)
+    # Multiply by number of users
+    bias *= len(P["users"])
 
-        # Compute concentrations numerator (for each user)
-        concentrations = {}
-        max_w = max(w.values())
-        # ... by computing the sum of squares of w for each user
-        for user, item in zip(trainset['user_id'], trainset['item_id']):
-            # Iterate over the trainset to compute the sum of squares for each user
-            if item in w:
-                if user not in concentrations:
-                    concentrations[user] = 0
-                concentrations[user] += w[item] ** 2
-        # ... and then applying the formula
-        for user in concentrations:
-            concentrations[user] = math.sqrt(concentrations[user] * 2 * math.log(2/delta)) + max_w * 7 * math.log(2/delta)
-        # Now sum all the concentrations
-        concentration = sum(concentrations.values())
+    # Compute concentrations numerator (for each user)
+    concentrations = {}
+    max_w = max(w.values())
+    # ... by computing the sum of squares of w for each user
+    for user, item in zip(trainset['user_id'], trainset['item_id']):
+        # Iterate over the trainset to compute the sum of squares for each user
+        if item in w:
+            if user not in concentrations:
+                concentrations[user] = 0
+            concentrations[user] += w[item] ** 2
+    # ... and then applying the formula
+    for user in concentrations:
+        concentrations[user] = math.sqrt(concentrations[user] * 2 * math.log(2/delta)) + max_w * 7 * math.log(2/delta)
+    # Now sum all the concentrations
+    concentration = sum(concentrations.values())
+
+    # Delete trainset
+    del trainset
 
     # Calculate per-user scores
     nonzero_user_count = 0
@@ -537,7 +544,6 @@ def stratified_2(infilename, infilename_neg, trainfilename, propensities, K=30, 
             Ni[i] += 1
         else:
             Ni[i] = 1
-    #del trainset
 
     # Compute recommendations for each user
     for theuser in P["users"]:
@@ -574,24 +580,26 @@ def stratified_2(infilename, infilename_neg, trainfilename, propensities, K=30, 
     linspace = np.linspace(0, len(items_sorted_by_value), partition+1)
    
     # Compute dictionary w, that is, for each item, assigns the average of the puis in the partition it belongs to
-    i=0
+    i  =0
     j = 0
     while i < len(items_sorted_by_value):
-                            
+        # Init average, start and end                    
         avg = 0
         start = i
         end = i
     
+        # Compute average pui for the subset
         while i < len(items_sorted_by_value) and i < linspace[j+1]:
             avg += 1.0 / pui[items_sorted_by_value[i]]
             end = i
             i += 1
-        
         avg = avg / (end - start + 1)
 
+        # Assign the average to the items in the subset
         for k in range(start, end+1):
             w[items_sorted_by_value[k]] = avg
 
+        # Move to the next subset of the partition
         j += 1
 
     # Compute bias' numerator
