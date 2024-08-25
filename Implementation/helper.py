@@ -8,6 +8,10 @@ import pickle
 # Function to pre-calculate the propensity scores
 def calculate_propensities(n_users, n_items, trainfilename, gammas=[1.5, 2, 2.5, 3], normalize=True):
 
+    # Init dictionaries
+    propensities = dict()
+    Ni = dict()
+
     # Compute frequencies of items in the training set
     trainset = np.load(trainfilename)
     for i in trainset['item_id']:
@@ -16,10 +20,6 @@ def calculate_propensities(n_users, n_items, trainfilename, gammas=[1.5, 2, 2.5,
         else:
             Ni[i] = 1
     del trainset
-
-    # Init dictionaries
-    propensities = dict()
-    Ni = dict()
 
     # Initialize propensities dictionary
     for gamma in gammas:
