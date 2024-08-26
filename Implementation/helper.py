@@ -40,6 +40,7 @@ def calculate_propensities(n_users, n_items, trainfilename, gammas=[1.5, 2, 2.5,
     # Return
     return propensities
 
+# IPS
 def eq(infilename, infilename_neg, trainfilename, propensities, K=1):
 
     # Read pickles
@@ -128,6 +129,7 @@ def eq(infilename, infilename_neg, trainfilename, propensities, K=1):
         "concentration" : -1
     }
 
+# AOA
 def aoa(infilename, infilename_neg, trainfilename, K=1):
 
     # Read pickles
@@ -212,6 +214,7 @@ def aoa(infilename, infilename_neg, trainfilename, K=1):
         "concentration" : -1
     }
 
+# Partitioned
 def stratified(infilename, infilename_neg, trainfilename, propensities, K=30, partition=10, delta=0.1):
 
     # Read pickles
@@ -363,6 +366,7 @@ def stratified(infilename, infilename_neg, trainfilename, propensities, K=30, pa
         "concentration" : concentration
     }
 
+# Partitioned with logspace
 def stratified_logspace(infilename, infilename_neg, trainfilename, propensities, K=30, partition=10, delta=0.1):
 
     # Read pickles
@@ -519,10 +523,7 @@ def stratified_logspace(infilename, infilename_neg, trainfilename, propensities,
         "concentration" : concentration
     }
 
-
-    
-
-# This version uses the linspace of the number of number of items used for evaluation, not of the propensities
+# Partitioned with linspace of items indexes
 def stratified_2(infilename, infilename_neg, trainfilename, propensities, K=30, partition=10, delta=0.1):
 
     # Read pickles
