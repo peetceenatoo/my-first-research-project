@@ -11,6 +11,8 @@ By stratifying items (e.g., by popularity) and aggregating feedback within strat
 
 This repository provides experimental comparison of **Naive (AOA)**, **IPS**, and **GS** estimators on real-world datasets through ranking-based metrics.
 
+It is quite a mess... But the previous experiments were much worse though.
+
 ## Environment Setup
 
 > ⚠️ Python 3.7 is mandatory due to TensorFlow 1.x compatibility.
@@ -27,4 +29,5 @@ conda activate RecSys-Evaluation
 ## Acknowledgements
 
 I thank my colleague and friend [Jacopo Piazzalunga](https://github.com/Jacopopiazza) who worked with me on this project.
+
 
