@@ -24,4 +24,7 @@ conda create -n RecSys-Evaluation python=3.7 anaconda
 conda activate RecSys-Evaluation
 ```
 
+## Acknowledgements
+
 I thank my colleague and friend [Jacopo Piazzalunga](https://github.com/Jacopopiazza) who worked with me on this project.
+
